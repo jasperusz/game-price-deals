@@ -5,13 +5,37 @@ import requests
 load_dotenv()
 api_key = os.getenv("ITAD_API_KEY")
 
-response = requests.get(
-    "https://api.isthereanydeal.com/v2/search/search/",
-    params={
+def search_game(game_name):
+    max_tries = 3
+    tries = 0
+    while tries < max_tries:
+        response = requests.get(
+        "https://api.isthereanydeal.com/games/search/v1",
+        params={
         "key": api_key,
-        "title": "hollow-knight"
-    }
-)
+        "title": game_name
+            }
+        )
+        print(response.status_code)
+        if response.status_code == 200:
+            return response.json()
+        if response.status_code == 404:
+            return {
+                "error": "Game not found.",
+                "status_code": response.status_code,
+                "reason": response.reason
+            }
+        if response.status_code == 400:
+            return {
+                "error": "Bad request",
+                "status_code": response.status_code,
+                "reason": response.reason
+            }
+        tries += 1
+        return {
+            "error": "Failed after retries"
+        }
 
-print(response.status_code)
-print(response.json())
+game_name = input('Enter game name: ')
+searchgame = search_game(game_name)
+print(searchgame)
