@@ -18,7 +18,9 @@ def search_game(game_name):
         )
         print(response.status_code)
         if response.status_code == 200:
-            return response.json()
+            results = response.json()
+            for i, result in enumerate(results, start=1):
+                print(f'{i}: {result['title']} ({result['type']})')
         if response.status_code == 404:
             return {
                 "error": "Game not found.",
