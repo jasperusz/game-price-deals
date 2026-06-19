@@ -69,12 +69,16 @@ def game_info(game_id):
         game_title = game_info["title"]
         tags = game_info["tags"]
         release_date = game_info["releaseDate"]
-        return game_title, tags, release_date
+        publisher = game_info["publishers"][0]["name"]
+        metascore = game_info["reviews"][1]["source"]
+        metascore_score = game_info["reviews"][1]["score"]
+
+        return game_title, tags, release_date, publisher, metascore, metascore_score
     else:
         return None
 
 if searchgame:
     result = game_info(searchgame["id"])
     if result:
-        game_title, tags, release_date = result
-        print(f'Game Info:\nTitle: {game_title}\nTags:{tags}\nRelease Date: {release_date}')
+        game_title, tags, release_date, publisher, metascore, metascore_score = result
+        print(f'Game Info:\nTitle: {game_title}\nTags:{tags}\nRelease Date: {release_date}\nPublisher: {publisher}\n{metascore} Score: {metascore_score}')
