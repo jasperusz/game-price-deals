@@ -22,12 +22,15 @@ def search_game(game_name):
         if response.status_code == 200:
             results = response.json()
             for i, result in enumerate(results, start=1):
-                print(f'{i}: {result['title']} ({result['type']})')
+                print(f"{i}: {result['title']} ({result['type']})")
             choice = int(input('Select the game from the list: '))
             user_selection = results[choice - 1]
             searched_game_name = user_selection['title']
             searched_game_id = user_selection['id']
-            return f'You selected {searched_game_name}.\nGame ID: {searched_game_id}'
+            return {
+                "name": searched_game_name,
+                "id": searched_game_id
+            }
             
         # If the search didn't find the game
         if response.status_code == 404:
@@ -44,10 +47,34 @@ def search_game(game_name):
                 "reason": response.reason
             }
         tries += 1
-        return {
+        
+    return {
             "error": "Failed after retries"
         }
 
 game_name = input('Enter game name: ')
 searchgame = search_game(game_name)
 print(searchgame)
+
+def game_info(game_id):
+    response = requests.get("https://api.isthereanydeal.com/games/info/v2",
+                            params={
+                                "key": api_key,
+                                "id": game_id
+                                }
+                            )
+    print(f'Status Code: {response.status_code}')
+    if response.status_code == 200:
+        game_info = response.json()
+        game_title = game_info["title"]
+        tags = game_info["tags"]
+        release_date = game_info["releaseDate"]
+        return game_title, tags, release_date
+    else:
+        return None
+
+if searchgame:
+    result = game_info(searchgame["id"])
+    if result:
+        game_title, tags, release_date = result
+        print(f'Game Info:\nTitle: {game_title}\nTags:{tags}\nRelease Date: {release_date}')
