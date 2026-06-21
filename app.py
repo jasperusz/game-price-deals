@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 import requests
+import json
 
 load_dotenv()
 api_key = os.getenv("ITAD_API_KEY")
@@ -76,9 +77,49 @@ def game_info(game_id):
         return game_title, tags, release_date, publisher, metascore, metascore_score
     else:
         return None
-
+    
+def get_deals(game_id):
+    response = requests.post("https://api.isthereanydeal.com/games/prices/v3",
+                            params={
+                                "key": api_key,
+                                "country": "BR",
+                                "deals": True,
+                                "vouchers": True
+                                },
+                                json=[
+                                    game_id
+                                    ]
+                            )
+    
+    print(f'Status Code: {response.status_code}')
+    if response.status_code == 200:
+        prices_info = response.json()[0]
+        history_low_price = prices_info["historyLow"]["all"]["amount"]
+        deals = prices_info["deals"]
+        formatted_deals = []
+    
+        for deal in deals:
+            formatted_deal = {
+                "shop": deal["shop"]["name"],
+                "price": deal["price"]["amount"],
+                "regular_price": deal["regular"]["amount"],
+                "discount": deal["cut"],
+                "voucher": deal["voucher"],
+                "url": deal["url"]
+            }
+            formatted_deals.append(formatted_deal)
+        return history_low_price, formatted_deals
+    else:
+        return None
+    
 if searchgame:
     result = game_info(searchgame["id"])
     if result:
-        game_title, tags, release_date, publisher, metascore, metascore_score = result
+        deals_info = get_deals(searchgame["id"])
+        history_low_price, formatted_deals = deals_info
+        game_title, tags, release_date, publisher, metascore, metascore_score= result
         print(f'Game Info:\nTitle: {game_title}\nTags:{tags}\nRelease Date: {release_date}\nPublisher: {publisher}\n{metascore} Score: {metascore_score}')
+        print(f'History Low Price: R$ {history_low_price}\n')
+        print(f'Deals:{formatted_deals}')
+    
+
