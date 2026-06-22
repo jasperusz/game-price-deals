@@ -120,6 +120,8 @@ if searchgame:
         game_title, tags, release_date, publisher, metascore, metascore_score= result
         print(f'Game Info:\nTitle: {game_title}\nTags:{tags}\nRelease Date: {release_date}\nPublisher: {publisher}\n{metascore} Score: {metascore_score}')
         print(f'History Low Price: R$ {history_low_price}\n')
-        print(f'Deals:{formatted_deals}')
-    
+        
+        for deal in formatted_deals:
+            print(f"Shop: {deal['shop']}\nPrice: R$ {deal['price']}\nRegular Price: R$ {deal['regular_price']}\n\
+                  Discount: {deal['discount']}%\nVoucher: {deal['voucher']}\nURL: {deal['url']}\n")
 
