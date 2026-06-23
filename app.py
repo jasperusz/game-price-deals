@@ -24,14 +24,23 @@ def search_game(game_name):
             results = response.json()
             for i, result in enumerate(results, start=1):
                 print(f"{i}: {result['title']} ({result['type']})")
-            choice = int(input('Select the game from the list: '))
-            user_selection = results[choice - 1]
-            searched_game_name = user_selection['title']
-            searched_game_id = user_selection['id']
+            while True:
+                try:
+                    choice = int(input('Select the game from the list: '))
+                    if choice < 1 or choice > len(results):
+                        print("Invalid choice. Please select a valid game number from the search list.")
+                    else:
+                        user_selection = results[choice - 1]
+                        searched_game_name = user_selection['title']
+                        searched_game_id = user_selection['id']
+                        break
+                except ValueError:
+                    print("Invalid input. Please enter a number from the search list.")
             return {
-                "name": searched_game_name,
-                "id": searched_game_id
-            }
+                    "name": searched_game_name,
+                    "id": searched_game_id
+                        }
+
             
         # If the search didn't find the game
         if response.status_code == 404:
