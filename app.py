@@ -61,76 +61,113 @@ def search_game(game_name):
     return {
             "error": "Failed after retries"
         }
+while True:
+    game_name = input('Enter game name: ')
+    searchgame = search_game(game_name)
+    print(searchgame)
 
-game_name = input('Enter game name: ')
-searchgame = search_game(game_name)
-print(searchgame)
+    def game_info(game_id):
+        response = requests.get("https://api.isthereanydeal.com/games/info/v2",
+                                params={
+                                    "key": api_key,
+                                    "id": game_id
+                                    }
+                                )
+        print(f'Status Code: {response.status_code}')
+        if response.status_code == 200:
+            game_info = response.json()
+            game_title = game_info["title"]
+            tags = game_info["tags"]
+            release_date = game_info["releaseDate"]
+            if release_date is None:
+                release_date = "N/A"
+            publisher = game_info["publishers"][0]["name"]
+            if publisher is None:
+                publisher = "N/A"
+            if len(game_info["reviews"]) > 1:
+                metascore = game_info["reviews"][1]["source"]
+                metascore_score = game_info["reviews"][1]["score"]
+            else:
+                metascore = "N/A"
+                metascore_score = "N/A"
+            if metascore_score is None:
+                metascore_score = "N/A"
 
-def game_info(game_id):
-    response = requests.get("https://api.isthereanydeal.com/games/info/v2",
-                            params={
-                                "key": api_key,
-                                "id": game_id
-                                }
-                            )
-    print(f'Status Code: {response.status_code}')
-    if response.status_code == 200:
-        game_info = response.json()
-        game_title = game_info["title"]
-        tags = game_info["tags"]
-        release_date = game_info["releaseDate"]
-        publisher = game_info["publishers"][0]["name"]
-        metascore = game_info["reviews"][1]["source"]
-        metascore_score = game_info["reviews"][1]["score"]
-
-        return game_title, tags, release_date, publisher, metascore, metascore_score
-    else:
-        return None
-    
-def get_deals(game_id):
-    response = requests.post("https://api.isthereanydeal.com/games/prices/v3",
-                            params={
-                                "key": api_key,
-                                "country": "BR",
-                                "deals": True,
-                                "vouchers": True
-                                },
-                                json=[
-                                    game_id
-                                    ]
-                            )
-    
-    print(f'Status Code: {response.status_code}')
-    if response.status_code == 200:
-        prices_info = response.json()[0]
-        history_low_price = prices_info["historyLow"]["all"]["amount"]
-        deals = prices_info["deals"]
-        formatted_deals = []
-    
-        for deal in deals:
-            formatted_deal = {
-                "shop": deal["shop"]["name"],
-                "price": deal["price"]["amount"],
-                "regular_price": deal["regular"]["amount"],
-                "discount": deal["cut"],
-                "voucher": deal["voucher"],
-                "url": deal["url"]
-            }
-            formatted_deals.append(formatted_deal)
-        return history_low_price, formatted_deals
-    else:
-        return None
-    
-if searchgame:
-    result = game_info(searchgame["id"])
-    if result:
-        deals_info = get_deals(searchgame["id"])
-        history_low_price, formatted_deals = deals_info
-        game_title, tags, release_date, publisher, metascore, metascore_score= result
-        print(f'Game Info:\nTitle: {game_title}\nTags:{tags}\nRelease Date: {release_date}\nPublisher: {publisher}\n{metascore} Score: {metascore_score}')
-        print(f'History Low Price: R$ {history_low_price}\n')
+            return game_title, tags, release_date, publisher, metascore, metascore_score
+        else:
+            return None
         
-        for deal in formatted_deals:
-            print(f"Shop: {deal['shop']}\nPrice: R$ {deal['price']}\nRegular Price: R$ {deal['regular_price']}\n\
-                  Discount: {deal['discount']}%\nVoucher: {deal['voucher']}\nURL: {deal['url']}\n")
+    def get_deals(game_id):
+        response = requests.post("https://api.isthereanydeal.com/games/prices/v3",
+                                params={
+                                    "key": api_key,
+                                    "country": "BR",
+                                    "deals": True,
+                                    "vouchers": True
+                                    },
+                                    json=[
+                                        game_id
+                                        ]
+                                )
+        
+        print(f'Status Code: {response.status_code}')
+        if response.status_code == 200:
+            prices_info_list = response.json()
+            if len(prices_info_list) == 0:
+                return None
+                
+            else:
+                prices_info = prices_info_list[0]
+                history_low_price = prices_info["historyLow"]["all"]["amount"]
+                if history_low_price is None:
+                    history_low_price = "N/A"
+                deals = prices_info["deals"]
+                formatted_deals = []
+            
+                for deal in deals:
+                    formatted_deal = {
+                        "shop": deal["shop"]["name"],
+                        "price": deal["price"]["amount"],
+                        "regular_price": deal["regular"]["amount"],
+                        "discount": deal["cut"],
+                        "voucher": deal["voucher"],
+                        "url": deal["url"]
+                    }
+                    formatted_deals.append(formatted_deal)
+                return history_low_price, formatted_deals
+        else:
+            return None
+        
+    if "id" in searchgame:
+        result = game_info(searchgame["id"])
+        if result:
+            deals_info = get_deals(searchgame["id"])
+            if deals_info is None:
+                print("Failed to retrieve deals information.")
+                continue
+            else:
+                history_low_price, formatted_deals = deals_info
+                game_title, tags, release_date, publisher, metascore, metascore_score= result
+                print(f'Game Info:\nTitle: {game_title}\nTags:{tags}\nRelease Date: {release_date}\nPublisher: {publisher}\n{metascore} Score: {metascore_score}')
+                print(f'History Low Price: R$ {history_low_price}\n')
+                
+                for deal in formatted_deals:
+                    print(f"Shop: {deal['shop']}\nPrice: R$ {deal['price']}\nRegular Price: R$ {deal['regular_price']}\n\
+                        Discount: {deal['discount']}%\nVoucher: {deal['voucher']}\nURL: {deal['url']}\n")
+                    print("--------------------------------------------------")
+                user_input = input("Do you want to search for another game? (yes/no)\n").lower()
+                if user_input == "no":
+                    print("Exiting...")
+                    break
+                elif user_input == "yes":
+                    continue
+                else:
+                    print("Invalid input. Exiting...")
+                    break
+        else:
+            print("Failed to retrieve game information.")
 
+    else:
+        print("Game not found or invalid game ID.")
+
+    
