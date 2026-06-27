@@ -61,82 +61,83 @@ def search_game(game_name):
     return {
             "error": "Failed after retries"
         }
+
+def game_info(game_id):
+    response = requests.get("https://api.isthereanydeal.com/games/info/v2",
+                            params={
+                                "key": api_key,
+                                "id": game_id
+                                }
+                            )
+    print(f'Status Code: {response.status_code}')
+    if response.status_code == 200:
+        game_info = response.json()
+        game_title = game_info["title"]
+        tags = game_info["tags"]
+        release_date = game_info["releaseDate"]
+        if release_date is None:
+            release_date = "N/A"
+        publisher = game_info["publishers"][0]["name"]
+        if publisher is None:
+            publisher = "N/A"
+        if len(game_info["reviews"]) > 1:
+            metascore = game_info["reviews"][1]["source"]
+            metascore_score = game_info["reviews"][1]["score"]
+        else:
+            metascore = "N/A"
+            metascore_score = "N/A"
+        if metascore_score is None:
+            metascore_score = "N/A"
+
+        return game_title, tags, release_date, publisher, metascore, metascore_score
+    else:
+        return None
+    
+def get_deals(game_id):
+    response = requests.post("https://api.isthereanydeal.com/games/prices/v3",
+                            params={
+                                "key": api_key,
+                                "country": "BR",
+                                "deals": True,
+                                "vouchers": True
+                                },
+                                json=[
+                                    game_id
+                                    ]
+                            )
+    
+    print(f'Status Code: {response.status_code}')
+    if response.status_code == 200:
+        prices_info_list = response.json()
+        if len(prices_info_list) == 0:
+            return None
+            
+        else:
+            prices_info = prices_info_list[0]
+            history_low_price = prices_info["historyLow"]["all"]["amount"]
+            if history_low_price is None:
+                history_low_price = "N/A"
+            deals = prices_info["deals"]
+            formatted_deals = []
+        
+            for deal in deals:
+                formatted_deal = {
+                    "shop": deal["shop"]["name"],
+                    "price": deal["price"]["amount"],
+                    "regular_price": deal["regular"]["amount"],
+                    "discount": deal["cut"],
+                    "voucher": deal["voucher"],
+                    "url": deal["url"]
+                }
+                formatted_deals.append(formatted_deal)
+            return history_low_price, formatted_deals
+    else:
+        return None
+        
 while True:
     game_name = input('Enter game name: ')
     searchgame = search_game(game_name)
     print(searchgame)
-
-    def game_info(game_id):
-        response = requests.get("https://api.isthereanydeal.com/games/info/v2",
-                                params={
-                                    "key": api_key,
-                                    "id": game_id
-                                    }
-                                )
-        print(f'Status Code: {response.status_code}')
-        if response.status_code == 200:
-            game_info = response.json()
-            game_title = game_info["title"]
-            tags = game_info["tags"]
-            release_date = game_info["releaseDate"]
-            if release_date is None:
-                release_date = "N/A"
-            publisher = game_info["publishers"][0]["name"]
-            if publisher is None:
-                publisher = "N/A"
-            if len(game_info["reviews"]) > 1:
-                metascore = game_info["reviews"][1]["source"]
-                metascore_score = game_info["reviews"][1]["score"]
-            else:
-                metascore = "N/A"
-                metascore_score = "N/A"
-            if metascore_score is None:
-                metascore_score = "N/A"
-
-            return game_title, tags, release_date, publisher, metascore, metascore_score
-        else:
-            return None
-        
-    def get_deals(game_id):
-        response = requests.post("https://api.isthereanydeal.com/games/prices/v3",
-                                params={
-                                    "key": api_key,
-                                    "country": "BR",
-                                    "deals": True,
-                                    "vouchers": True
-                                    },
-                                    json=[
-                                        game_id
-                                        ]
-                                )
-        
-        print(f'Status Code: {response.status_code}')
-        if response.status_code == 200:
-            prices_info_list = response.json()
-            if len(prices_info_list) == 0:
-                return None
-                
-            else:
-                prices_info = prices_info_list[0]
-                history_low_price = prices_info["historyLow"]["all"]["amount"]
-                if history_low_price is None:
-                    history_low_price = "N/A"
-                deals = prices_info["deals"]
-                formatted_deals = []
-            
-                for deal in deals:
-                    formatted_deal = {
-                        "shop": deal["shop"]["name"],
-                        "price": deal["price"]["amount"],
-                        "regular_price": deal["regular"]["amount"],
-                        "discount": deal["cut"],
-                        "voucher": deal["voucher"],
-                        "url": deal["url"]
-                    }
-                    formatted_deals.append(formatted_deal)
-                return history_low_price, formatted_deals
-        else:
-            return None
         
     if "id" in searchgame:
         result = game_info(searchgame["id"])
