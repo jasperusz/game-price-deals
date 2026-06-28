@@ -2,6 +2,10 @@ import os
 from dotenv import load_dotenv
 import requests
 import json
+from rich.table import Table
+from rich.console import Console
+
+console = Console()
 
 load_dotenv()
 api_key = os.getenv("ITAD_API_KEY")
@@ -118,8 +122,7 @@ def get_deals(game_id):
             if history_low_price is None:
                 history_low_price = "N/A"
             deals = prices_info["deals"]
-            formatted_deals = []
-        
+            formatted_deals = []      
             for deal in deals:
                 formatted_deal = {
                     "shop": deal["shop"]["name"],
@@ -151,11 +154,25 @@ while True:
                 game_title, tags, release_date, publisher, metascore, metascore_score= result
                 print(f'Game Info:\nTitle: {game_title}\nTags:{tags}\nRelease Date: {release_date}\nPublisher: {publisher}\n{metascore} Score: {metascore_score}')
                 print(f'History Low Price: R$ {history_low_price}\n')
+                table = Table(title="Game Deals")
+                table.add_column("Shop", style="cyan", no_wrap=True)
+                table.add_column("Price", style="green")
+                table.add_column("Regular Price", style="red")
+                table.add_column("Discount", style="yellow")
+                table.add_column("Voucher", style="magenta")
+                table.add_column("URL", style="blue")
                 
                 for deal in formatted_deals:
-                    print(f"Shop: {deal['shop']}\nPrice: R$ {deal['price']}\nRegular Price: R$ {deal['regular_price']}\n\
-                        Discount: {deal['discount']}%\nVoucher: {deal['voucher']}\nURL: {deal['url']}\n")
-                    print("--------------------------------------------------")
+                    table.add_row(
+                        deal["shop"],
+                        f'R$ {deal["price"]}',
+                        f'R$ {deal["regular_price"]}',
+                        f'{deal["discount"]}%',
+                        deal["voucher"] if deal["voucher"] else "N/A",
+                        deal["url"]
+                    )
+                console.print(table)
+                print("--------------------------------------------------")
                 user_input = input("Do you want to search for another game? (yes/no)\n").lower()
                 if user_input == "no":
                     print("Exiting...")
