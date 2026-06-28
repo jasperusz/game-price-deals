@@ -21,7 +21,6 @@ def search_game(game_name):
         "title": game_name
             }
         )
-        print(f'Status Code: {response.status_code}')
 
         # If the Search find results
         if response.status_code == 200:
@@ -73,7 +72,7 @@ def game_info(game_id):
                                 "id": game_id
                                 }
                             )
-    print(f'Status Code: {response.status_code}')
+    
     if response.status_code == 200:
         game_info = response.json()
         game_title = game_info["title"]
@@ -110,7 +109,6 @@ def get_deals(game_id):
                                     ]
                             )
     
-    print(f'Status Code: {response.status_code}')
     if response.status_code == 200:
         prices_info_list = response.json()
         if len(prices_info_list) == 0:
@@ -161,7 +159,7 @@ while True:
                 table.add_column("Discount", style="yellow")
                 table.add_column("Voucher", style="magenta")
                 table.add_column("URL", style="blue")
-                
+
                 for deal in formatted_deals:
                     table.add_row(
                         deal["shop"],
