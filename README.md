@@ -4,8 +4,6 @@
 
 > A simple Python project to fetch Game Deals from Is There Any Deal API.
 
-https://brasileirao-stats.streamlit.app/
-
 ## ⚙️ Project Structure
 
 ```bash
@@ -21,7 +19,7 @@ game-price-deals/
 ## 🔧 Used Tools
 
 > [!IMPORTANT]
-> - Python (Python 3.11.9 was the used in this project)
+> - Python
 > - Rich
 > - Requests
 
